@@ -315,7 +315,7 @@ void ana(const char *inputFile, const char *outputFile)
     nJet=0;
     for(int i=0; i<branchJet->GetEntries(); ++i){
       const Jet* jet_ = (const Jet*) branchJet->At(i);
-      if (jet->BTag < 2) continue;
+      if (jet->BTag == 1) continue;
       Jet_pt[nJet] = jet->PT;
       Jet_eta[nJet] = jet->Eta;
       Jet_phi[nJet] = jet->Phi;
@@ -489,10 +489,13 @@ void ana(const char *inputFile, const char *outputFile)
     histdRbb->Fill(dRbb);
     tree->Fill();
   }
-  cout << "Total number of events = " << numberOfSelectedEvents << endl;;
-  cout << "Total number of matched events = " << numberOfMatchedEvents << endl;;
+  cout << "Number of Entries = " << numberOfEntries << endl;
+  cout << "Total number of events = " << numberOfSelectedEvents << endl;
+  cout << "Total number of matched events = " << numberOfMatchedEvents << endl;
   double eff = (double) numberOfMatchedEvents/ (double) numberOfSelectedEvents;
+  double ratio = (double) numberOfSelectedEvents / (double) numberOfEntries;
   cout << "Matching eff. = " << eff << endl;
+  cout << "Ratio = " << ratio << endl;
   fout->Write();
   fout->Close();
 }
