@@ -151,7 +151,7 @@ bool isFromTop(const GenParticle* p, const TClonesArray* branchParticle){
   return output;
 }
 
-void cna(const char *inputFile, const char *outputFile)
+void dna(const char *inputFile, const char *outputFile)
 {
   gSystem->Load("libDelphes");
 
