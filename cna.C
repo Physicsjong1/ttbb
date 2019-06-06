@@ -201,19 +201,19 @@ void cna(const char *inputFile, const char *outputFile)
   
   
   tree->Branch("nElectron",&nElectron,"nElectron/s");
-  tree->Branch("Electron_e",&Electron_e,"Electron_e/F");
+  //tree->Branch("Electron_e",&Electron_e,"Electron_e/F");
   tree->Branch("Electron_pt",&Electron_pt,"Electron_pt/F");
   tree->Branch("Electron_eta",&Electron_eta,"Electron_eta/F");
   tree->Branch("Electron_phi",&Electron_phi,"Electron_phi/F");
   
   tree->Branch("nMuon",&nMuon,"nMuon/s");
-  tree->Branch("Muon_e",&Electron_e,"Muon_e/F");
+  //tree->Branch("Muon_e",&Electron_e,"Muon_e/F");
   tree->Branch("Muon_pt",&Muon_pt,"Muon_pt/F");
   tree->Branch("Muon_eta",&Muon_eta,"Muon_eta/F");
   tree->Branch("Muon_phi",&Muon_phi,"Muon_phi/F");
   
   tree->Branch("nJet",&nJet,"nJet/s");
-  tree->Branch("Jet_e",&Jet_e,"Jet_e/F");
+  //tree->Branch("Jet_e",&Jet_e,"Jet_e/F");
   tree->Branch("Jet_pt",&Jet_pt,"Jet_pt/F");
   tree->Branch("Jet_eta",&Jet_eta,"Jet_eta/F");
   tree->Branch("Jet_phi",&Jet_phi,"Jet_phi/F");
@@ -229,37 +229,40 @@ void cna(const char *inputFile, const char *outputFile)
   TClonesArray *branchMuon = treeReader->UseBranch("Muon");
   
   // Book histograms
-  TH1 *histnbjet = new TH1F("nbjet", "Number of b-jets", 5, 0.0, 5.0);
-  TH1 *histMbb = new TH1F("mbb", "M_{inv}(b, b)", 30, 70.0, 180.0);
-  TH1 *histdRbb = new TH1F("dRbb", "dR(b, b)", 25, 0, 4.0);
+  TH1 *histnbjet = new TH1F("nbjet", "Number of b-jets", 10, 0.0, 10.0);
+  TH1 *histMbb = new TH1F("mbb", "M_{inv}(b, b)", 200, 0, 180.0);
+  TH1 *histdRbb = new TH1F("dRbb", "dR(b, b)", 50, 0, 4.0);
   
   TH1 *hist_gennbjet = new TH1F("gennbjet", "Number of b-jets", 5, 0.0, 5.0);
-  TH1 *hist_genMbb = new TH1F("genmbb", "M_{inv}(b, b)", 30, 70.0, 180.0);
-  TH1 *hist_gendRbb = new TH1F("gendRbb", "dR(b, b)", 25, 0, 4.0);
+  TH1 *hist_genMbb = new TH1F("genmbb", "M_{inv}(b, b)", 200, 0, 180.0);
+  TH1 *hist_gendRbb = new TH1F("gendRbb", "dR(b, b)", 50, 0, 4.0);
   
   TH1 *hist_matchednbjet = new TH1F("matchednbjet", "Number of b-jets", 5, 0.0, 5.0);
-  TH1 *hist_matchedMbb = new TH1F("matchedmbb", "M_{inv}(b, b)", 30, 70.0, 180.0);
-  TH1 *hist_matcheddRbb = new TH1F("matcheddRbb", "dR(b, b)", 25, 0, 4.0);
+  TH1 *hist_matchedMbb = new TH1F("matchedmbb", "M_{inv}(b, b)", 200, 0, 180.0);
+  TH1 *hist_matcheddRbb = new TH1F("matcheddRbb", "dR(b, b)", 50, 0, 4.0);
 
   Int_t numberOfSelectedEvents = 0;
   Int_t numberOfMatchedEvents = 0;
   
   vector<Jet *> bJets;
-  vector<Jet *> gjet;
-  vector<Electron *> gelectron;
-  vector<Muon *> gmuon;
+  vector<Jet *> Jetv;
+  vector<Electron *> Electronv;
+  vector<Muon *> Muonv;
 
   TLorentzVector p4[2];
   Jet *jet;
   Electron *electron;
   Muon *muon;
   
-  int entry, i, njet, ngjet, ngelectron, ngmuon;
+  int entry, i, njet, nbjet, nelectron, nmuon;
   bool isdilepton = false;
   bool pass = false;
   if (fin.Contains("di") == true){
     isdilepton = true;
+    cout<<"Dilepton"<<endl;
   }
+  else
+    cout<<"Single Lepton"<<endl;
 
   // Loop over all events
   for(entry = 0; entry < numberOfEntries; ++entry)
@@ -268,51 +271,83 @@ void cna(const char *inputFile, const char *outputFile)
     treeReader->ReadEntry(entry);
     if(entry%1000 == 0) cout << "event number: " << entry << endl;
 
+    Jet_pt = 999;
+    Jet_eta = 999;
+    Jet_phi = 999;
+    Electron_pt = 999;
+    Electron_eta = 999;
+    Electron_phi = 999;
+    Muon_pt = 999;
+    Muon_eta = 999;
+    Muon_phi = 999;
+    
     //Jet cut
-    gjet.clear();
-    ngjet = 0;
+    Jetv.clear();
     njet = 0;
-    for(int j=0; j < branchJet->GetEntries(); j++){
-      jet = (Jet*) branchJet->At(j);
+    nbjet = 0;
+    for(int j=0; j < branchJet->GetEntries(); ++j){
+      jet = (Jet*) branchJet->At(j);  
       if( (jet->PT> 30) & (abs(jet->Eta) < 2.5) ){ 
         njet++;
         if(jet->BTag){
-          gjet.push_back(jet);
-          ngjet++;
+          Jetv.push_back(jet);
+          nbjet++;
         }
       }
     }
     //Electron cut
-    gelectron.clear();
-    ngelectron = 0;
-    for(int j=0; j < branchElectron->GetEntries(); j++){
-      electron = (Electron*) branchElectron->At(j); 
+    Electronv.clear();
+    nelectron = 0;
+    for(int j=0; j < branchElectron->GetEntries(); ++j){
+      electron = (Electron*) branchElectron->At(j);  
       if( (electron->PT > 30) & (abs(electron->Eta) < 2.5) ){
-        gelectron.push_back(electron);
-        ngelectron++;
+        Electronv.push_back(electron); 
+        nelectron++;
       }
     }
     //Muon cut 
-    gmuon.clear();
-    ngmuon = 0;
-    for(int j=0; j < branchMuon->GetEntries(); j++){
-      muon = (Muon*) branchMuon->At(j); 
+    Muonv.clear();
+    nmuon = 0;
+    for(int j=0; j < branchMuon->GetEntries(); ++j){
+      muon = (Muon*) branchMuon->At(j);  
       if( (muon->PT > 30) & (abs(muon->Eta) < 2.5) ){
-        gmuon.push_back(muon);
-        ngmuon++;
+        Muonv.push_back(muon); 
+        nmuon++;
       }
     }
     //Single lepton channel cuts
     if(isdilepton){
-      pass = (ngelectron >= 2) || (ngmuon >= 2) || (ngelectron >= 1 & ngmuon >= 1) & (njet >= 2) & (ngjet >= 2);
+      pass = (nelectron >= 2) || (nmuon >= 2) || (nelectron >= 1 & nmuon >= 1) & (njet >= 2) & (nbjet >= 2);
+      //cout<<"dicut"<<endl;
     }
     //Dilepton channel cuts
     else {
-      pass = (ngelectron == 1 || ngmuon == 1) & (njet >= 4) & (ngjet >= 2);
+      pass = (nelectron == 1 || nmuon == 1) & (njet >= 4) & (nbjet >= 2);
+      //cout<<"singlecut"<<endl;
     }
-   
-    if(pass == 0) continue;
 
+    for(int k=0; k < Jetv.size(); ++k){
+      Jet_pt = Jetv[k]->PT;
+      Jet_eta = Jetv[k]->Eta;
+      Jet_phi = Jetv[k]->Phi;
+    }
+    for(int k=0; k < Electronv.size(); ++k){
+      Electron_pt = Electronv[k]->PT;
+      Electron_eta = Electronv[k]->Eta;
+      Electron_phi = Electronv[k]->Phi;
+    }
+    for(int k=0; k < Muonv.size(); ++k){
+      Muon_pt = Muonv[k]->PT;
+      Muon_eta = Muonv[k]->Eta;
+      Muon_phi = Muonv[k]->Phi;
+    }
+    
+    nJet = njet;
+    nElectron = nelectron;
+    nMuon = nmuon;
+
+    if(!pass) continue;
+    
     bJets.clear();
     bjet1_pt = 999;
     bjet1_eta = 999;
