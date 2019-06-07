@@ -151,7 +151,7 @@ bool isFromTop(const GenParticle* p, const TClonesArray* branchParticle){
   return output;
 }
 
-void dna(const char *inputFile, const char *outputFile)
+void cna(const char *inputFile, const char *outputFile)
 {
   gSystem->Load("libDelphes");
 
@@ -255,14 +255,14 @@ void dna(const char *inputFile, const char *outputFile)
   Muon *muon;
   
   int entry, i, njet, nbjet, nelectron, nmuon;
-  bool isdilepton = false;
+  bool islepjet = false;
   bool pass = false;
-  if (fin.Contains("di") == true){
-    isdilepton = true;
-    cout<<"Dilepton"<<endl;
+  if (fin.Contains("lj") == true){
+    islepjet = true;
+    cout<<"Single Lepton Channel"<<endl;
   }
   else
-    cout<<"Single Lepton"<<endl;
+    cout<<"Dilepton Lepton Channel"<<endl;
 
   // Loop over all events
   for(entry = 0; entry < numberOfEntries; ++entry)
@@ -316,38 +316,37 @@ void dna(const char *inputFile, const char *outputFile)
       }
     }
     //Single lepton channel cuts
-    if(isdilepton){
-      pass = (nelectron >= 2) || (nmuon >= 2) || (nelectron >= 1 & nmuon >= 1) & (njet >= 2) & (nbjet >= 2);
-      //cout<<"dicut"<<endl;
-    }
-    //Dilepton channel cuts
-    else {
+    if(islepjet){
       pass = (nelectron == 1 || nmuon == 1) & (njet >= 4) & (nbjet >= 2);
       //cout<<"singlecut"<<endl;
     }
-
-    for(int k=0; k < Jetv.size(); ++k){
+    //Dilepton channel cuts
+    else {
+      pass = ((nelectron >= 2) || (nmuon >= 2) || (nelectron >= 1 & nmuon >= 1)) & (njet >= 2) & (nbjet >= 2);
+      //cout<<"dicut"<<endl;
+    }
+    if(!pass) continue; 
+    for(int k=0; k < Jetv.size(); k++){
       Jet_pt = Jet_pt + Jetv[k]->PT;
       Jet_eta = Jet_eta + Jetv[k]->Eta;
       Jet_phi = Jet_phi + Jetv[k]->Phi;
     }
-    for(int k=0; k < Electronv.size(); ++k){
+    for(int k=0; k < Electronv.size(); k++){
       Electron_pt = Electron_pt + Electronv[k]->PT;
       Electron_eta = Electron_eta + Electronv[k]->Eta;
       Electron_phi = Electron_phi + Electronv[k]->Phi;
     }
-    for(int k=0; k < Muonv.size(); ++k){
+    for(int k=0; k < Muonv.size(); k++){
       Muon_pt = Muon_pt + Muonv[k]->PT;
       Muon_eta = Muon_eta + Muonv[k]->Eta;
       Muon_phi = Muon_phi + Muonv[k]->Phi;
     }
-    
     nJet = njet;
     nElectron = nelectron;
     nMuon = nmuon;
-
-    if(!pass) continue;
     
+    cout <<"nelectoron = "<< nelectron <<" nmuon = "<<nmuon<<" njet = "<<njet<<" nbjet = "<<nbjet<<endl;
+
     bJets.clear();
     bjet1_pt = 999;
     bjet1_eta = 999;
